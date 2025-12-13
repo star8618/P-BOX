@@ -76,7 +76,7 @@ fi
 echo -e "${GREEN}✓ Latest version: ${CYAN}v${VERSION}${NC}"
 
 # Download URL (GitHub uses 'v' prefix in release tags)
-FILENAME="p-box-linux-${ARCH}.tar.gz"
+FILENAME="p-box-${VERSION}-linux-${ARCH}.tar.gz"
 DOWNLOAD_URL="https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${FILENAME}"
 
 # Try CDN first
