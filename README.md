@@ -20,11 +20,11 @@ Powered by Mihomo (Clash.Meta) Core | Elegant Web UI | One-Click Deployment
 ## ✨ Features
 
 - 🎨 **Modern UI** - Beautiful Apple Glass style design with dark/light themes
-- 🖥️ **Cross-Platform** - Supports macOS, Windows, Linux
+- ��️ **Cross-Platform** - Supports macOS, Windows, Linux (**OpenWrt NOT supported**)
 - 🔧 **System Proxy** - Auto-configure system proxy (macOS/Windows), no manual setup needed
 - 📊 **Real-time Dashboard** - Traffic stats, connection monitoring, exit IP display
 - 📦 **Subscription Management** - Multiple subscription sources with one-click update
-- 🔄 **Core Management** - Auto version detection, one-click download and install
+- �� **Core Management** - Auto version detection, one-click download and install
 - ⚡ **Config Generator** - Visual rule configuration with smart routing
 - 🌐 **i18n** - Chinese/English language support
 - 🔐 **Authentication** - Built-in login system to protect the panel
@@ -52,17 +52,17 @@ Powered by Mihomo (Clash.Meta) Core | Elegant Web UI | One-Click Deployment
 curl -fsSL https://raw.githubusercontent.com/star8618/P-BOX/main/install.sh | sudo bash
 ```
 
-This script will:
-- Automatically detect system architecture (amd64/arm64)
+The script will:
+- Detect system architecture automatically (amd64/arm64)
 - Download the latest stable release
 - Install to `/etc/p-box`
-- Create systemd service for auto-start
+- Create a systemd service for auto-start
 - Configure Nginx reverse proxy
 - Start the service on port **8666**
 
 ### Manual Installation
 
-Go to [Releases](../../releases) page to download pre-built binaries for your platform:
+Download pre-built binaries from the [Releases](../../releases) page:
 
 | Platform | File |
 |:---|:---|
@@ -81,6 +81,53 @@ cd p-box-*
 
 Visit http://localhost:8383 to access the panel.
 
+### Local Development & Installation
+
+To run P-BOX from source or contribute to development:
+
+#### 📋 Prerequisites
+- **Go** 1.21 or higher
+- **Node.js** 18 or higher
+- **npm** (comes with Node.js)
+
+#### 🔨 Step-by-Step Setup
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/star8618/P-BOX.git
+   cd P-BOX
+   ```
+
+2. **Initialize Data Directory:**
+   ```bash
+   mkdir -p data/configs data/cores data/logs
+   ```
+
+3. **Setup Backend:**
+   ```bash
+   cd backend
+   go mod tidy
+   go build -o p-box .
+   cd ..
+   ```
+
+4. **Setup Frontend:**
+   ```bash
+   cd frontend
+   npm install
+   cd ..
+   ```
+
+#### 🚀 Running the App
+The easiest way is to use the provided startup script:
+```bash
+chmod +x start-all.sh
+./start-all.sh
+```
+Follow the prompts to choose **Development Mode** (1) or **Production Mode** (2).
+
+- **Frontend**: http://localhost:5173
+- **Backend**: http://localhost:8383
+
 ## 📁 Project Structure
 
 ```
@@ -89,29 +136,14 @@ p-box/
 │   ├── main.go              # Entry point
 │   ├── server/              # HTTP server
 │   ├── modules/             # Feature modules
-│   │   ├── proxy/           # Proxy service
-│   │   ├── subscription/    # Subscription management
-│   │   ├── node/            # Node management
-│   │   ├── core/            # Core management
-│   │   ├── system/          # System settings
-│   │   └── auth/            # Authentication
 │   └── data/                # Runtime data
-│       ├── configs/         # Config files
-│       ├── cores/           # Core binaries
-│       └── rules/           # Rule files
-│
 ├── frontend/                # React Frontend
-│   ├── src/
-│   │   ├── pages/           # Page components
-│   │   ├── components/      # UI components
-│   │   ├── api/             # API client
-│   │   ├── stores/          # State management
-│   │   └── i18n/            # Internationalization
+│   ├── src/                 # Source code
 │   └── public/              # Static assets
-│
-├── build.sh                 # Build script
-├── install.sh               # Linux installer
-└── start-all.sh             # Dev startup script
+├── data/                    # App data (configs, cores, rules)
+├── build.sh                 # Multi-platform build script
+├── install.sh               # Linux installer script
+└── start-all.sh             # Development startup script
 ```
 
 ## 🛠️ Tech Stack
@@ -127,7 +159,7 @@ p-box/
 
 ## ⚙️ Configuration
 
-Config file `data/config.yaml` is auto-generated on first run:
+A default configuration file `data/config.yaml` is generated on the first run:
 
 ```yaml
 # Server port (Linux default: 8666, others: 8383)
@@ -145,11 +177,11 @@ transparentMode: "off"
 
 ## 🤝 Contributing
 
-Pull Requests and Issues are welcome!
+Pull Requests and Issues are welcome! 
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
+3. Commit your changes (`git commit -m "Add amazing feature"`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
@@ -161,6 +193,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 - [Mihomo](https://github.com/MetaCubeX/mihomo) - High-performance proxy core
 - [Clash](https://github.com/Dreamacro/clash) - Original Clash core
+- [Sing-box](https://github.com/SagerNet/sing-box) - The universal proxy platform
 - [React](https://react.dev) - Frontend framework
 - [Tailwind CSS](https://tailwindcss.com) - CSS framework
 
