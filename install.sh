@@ -15,7 +15,6 @@ NC='\033[0m'
 
 # Configuration
 INSTALL_DIR="/etc/p-box"
-SERVICE_NAME="p-box"
 DEFAULT_PORT=8666
 GITHUB_REPO="star8618/P-BOX"
 GITHUB_API="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
@@ -75,11 +74,9 @@ fi
 
 echo -e "${GREEN}✓ Latest version: ${CYAN}v${VERSION}${NC}"
 
-# Download URL (GitHub uses 'v' prefix in release tags)
+# Download URL
 FILENAME="p-box-${VERSION}-linux-${ARCH}.tar.gz"
 DOWNLOAD_URL="https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${FILENAME}"
-
-# Try CDN first
 CDN_URL="https://ghfast.top/${DOWNLOAD_URL}"
 
 echo -e "${BLUE}📥 Downloading P-BOX...${NC}"
@@ -92,7 +89,6 @@ download_success=false
 
 # Try CDN
 if curl -sL --connect-timeout 15 -o "$TEMP_FILE" "$CDN_URL" 2>/dev/null; then
-    # Verify it's a valid gzip file
     if [ -s "$TEMP_FILE" ] && file "$TEMP_FILE" | grep -q "gzip"; then
         echo -e "${GREEN}✓ Downloaded from CDN${NC}"
         download_success=true
@@ -118,11 +114,8 @@ if [ "$download_success" = false ]; then
     exit 1
 fi
 
-# Stop existing service
-if systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
-    echo -e "${YELLOW}→ Stopping existing service...${NC}"
-    systemctl stop "$SERVICE_NAME"
-fi
+# Kill existing process
+pkill -f "${INSTALL_DIR}/p-box" 2>/dev/null || true
 
 # Create install directory
 echo -e "${BLUE}📁 Installing to ${INSTALL_DIR}...${NC}"
@@ -148,9 +141,8 @@ fi
 
 # Set permissions
 chmod +x "$INSTALL_DIR/p-box"
-chmod +x "$INSTALL_DIR/install-nginx.sh" 2>/dev/null || true
 
-# Update config port to 8666
+# Update config port
 if [ -f "$INSTALL_DIR/config.yaml" ]; then
     sed -i "s/port: 8383/port: ${DEFAULT_PORT}/" "$INSTALL_DIR/config.yaml"
     echo -e "${GREEN}✓ Updated default port to ${DEFAULT_PORT}${NC}"
@@ -160,69 +152,38 @@ fi
 rm -rf "$TEMP_DIR"
 echo -e "${GREEN}✓ Installation complete${NC}"
 
-# Create systemd service
-echo -e "${BLUE}⚙️ Creating systemd service...${NC}"
+# Start P-BOX
+echo -e "${BLUE}🚀 Starting P-BOX...${NC}"
+cd "$INSTALL_DIR"
+nohup ./p-box > /dev/null 2>&1 &
 
-cat > /etc/systemd/system/${SERVICE_NAME}.service << EOF
-[Unit]
-Description=P-BOX Proxy Management Panel
-After=network.target
-
-[Service]
-Type=simple
-WorkingDirectory=${INSTALL_DIR}
-ExecStart=${INSTALL_DIR}/p-box
-Restart=on-failure
-RestartSec=5
-StandardOutput=journal
-StandardError=journal
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Reload systemd
-systemctl daemon-reload
-
-# Enable service
-systemctl enable "$SERVICE_NAME"
-echo -e "${GREEN}✓ Service enabled for auto-start${NC}"
-
-# Run nginx installation script
-if [ -f "$INSTALL_DIR/install-nginx.sh" ]; then
-    echo -e "${BLUE}🔧 Running Nginx installation script...${NC}"
-    chmod +x "$INSTALL_DIR/install-nginx.sh"
-    cd "$INSTALL_DIR" && bash ./install-nginx.sh || echo -e "${YELLOW}⚠️ Nginx script completed with warnings${NC}"
-fi
-
-# Start service
-echo -e "${BLUE}🚀 Starting P-BOX service...${NC}"
-systemctl start "$SERVICE_NAME"
-
-# Check status
 sleep 2
-if systemctl is-active --quiet "$SERVICE_NAME"; then
+
+# Check if running
+if pgrep -f "${INSTALL_DIR}/p-box" > /dev/null; then
     echo -e "${GREEN}✓ P-BOX is running${NC}"
 else
-    echo -e "${YELLOW}⚠️ Service may need manual start: systemctl start ${SERVICE_NAME}${NC}"
+    echo -e "${YELLOW}⚠️ P-BOX may need manual start: cd ${INSTALL_DIR} && ./p-box${NC}"
 fi
 
 # Get IP
 IP_ADDR=$(hostname -I | awk '{print $1}' 2>/dev/null || echo "localhost")
 
 echo ""
-echo -e "${CYAN}╔════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║      ✅ P-BOX Installation Complete!   ║${NC}"
-echo -e "${CYAN}╠════════════════════════════════════════╣${NC}"
-echo -e "${CYAN}║${NC}                                        ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  📂 Install Path: ${GREEN}${INSTALL_DIR}${NC}         ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  🌐 Web Panel: ${GREEN}http://${IP_ADDR}:${DEFAULT_PORT}${NC}  ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}                                        ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  📋 Commands:                          ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}     systemctl start ${SERVICE_NAME}            ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}     systemctl stop ${SERVICE_NAME}             ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}     systemctl restart ${SERVICE_NAME}          ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}     systemctl status ${SERVICE_NAME}           ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}                                        ${CYAN}║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════╝${NC}"
+echo -e "${CYAN}╔════════════════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║         ✅ P-BOX Installation Complete!                ║${NC}"
+echo -e "${CYAN}╠════════════════════════════════════════════════════════╣${NC}"
+echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}  📂 Install Path: ${GREEN}${INSTALL_DIR}${NC}                         ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}  🌐 Web Panel: ${GREEN}http://${IP_ADDR}:${DEFAULT_PORT}${NC}              ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
+echo -e "${CYAN}╠════════════════════════════════════════════════════════╣${NC}"
+echo -e "${CYAN}║${NC}  ${YELLOW}💡 开机自启动设置方法：${NC}                               ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}     访问 Web 面板 → 设置 → 系统设置                   ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}     打开「开机自动启动」开关即可                       ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}                                                        ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}  ${YELLOW}💡 Auto-start configuration:${NC}                         ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}     Web Panel → Settings → System Settings            ${CYAN}║${NC}"
+echo -e "${CYAN}║${NC}     Enable \"Auto Start on Boot\" switch                ${CYAN}║${NC}"
+echo -e "${CYAN}╚════════════════════════════════════════════════════════╝${NC}"
 echo ""
